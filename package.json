@@ -1,0 +1,26 @@
+{
+  "name": "audio-cleaning-pricing",
+  "version": "1.0.0",
+  "description": "Калькулятор цін на обробку аудіо з динамічними формулами тарифів",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "audio",
+    "pricing",
+    "calculator",
+    "ukrainian",
+    "vite",
+    "javascript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^7.2.2"
+  }
+}
