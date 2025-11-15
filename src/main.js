@@ -1,3 +1,5 @@
+import './style.css';
+
 // Configuration
 let CURRENCY_RATE = 37;
 const FALLBACK_RATE = 37;
