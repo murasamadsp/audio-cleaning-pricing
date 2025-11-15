@@ -93,11 +93,11 @@ try {
   const js = fs.readFileSync('src/main.js', 'utf8');
 
   const checks = [
-    { name: 'CSS import', pattern: /import '\.\/style\.css'/ },
+    { name: 'CSS import', pattern: /import "\.\/style\.css"/ },
     { name: 'Chart.js integration', pattern: /new Chart\(/ },
     { name: 'DOM ready event', pattern: /DOMContentLoaded/ },
     { name: 'Health check function', pattern: /function healthCheck/ },
-    { name: 'Error handling', pattern: /addEventListener\('error'/ },
+    { name: 'Error handling', pattern: /addEventListener\("error"/ },
     { name: 'Fetch API usage', pattern: /fetch\(/ },
     { name: 'Currency conversion', pattern: /formatCurrency/ }
   ];

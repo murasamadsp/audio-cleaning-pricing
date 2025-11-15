@@ -14,9 +14,9 @@ let refreshTimer = null;
 // baseFee = setup/start fee (fixed cost)
 // A, B = formula parameters affecting per-minute rates
 const PRESETS = {
-    conservative: { baseFee: 15, formula: "hyperbolic", A: 0.08, B: 0.0002 }, // Higher setup fee, lower per-minute rates
-    balanced: { baseFee: 5, formula: "hyperbolic", A: 0.03, B: 0.0005 }, // Standard setup fee, balanced rates
-    aggressive: { baseFee: 3, formula: "hyperbolic", A: 0.015, B: 0.0008 }, // Lower setup fee, higher per-minute rates
+  conservative: { baseFee: 15, formula: "hyperbolic", A: 0.08, B: 0.0002 }, // Higher setup fee, lower per-minute rates
+  balanced: { baseFee: 5, formula: "hyperbolic", A: 0.03, B: 0.0005 }, // Standard setup fee, balanced rates
+  aggressive: { baseFee: 3, formula: "hyperbolic", A: 0.015, B: 0.0008 }, // Lower setup fee, higher per-minute rates
 };
 
 const FORMULAS = {
