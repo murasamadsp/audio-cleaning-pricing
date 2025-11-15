@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Калькулятор цін на обробку аудіо</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="/assets/index-Bmukuxqm.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-C9qCiadf.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Калькулятор цін</h1>
+        <p>Розрахунок пакетної очистки аудіо</p>
+      </div>
+
+      <div class="grid">
+        <!-- Calculator Section -->
+        <div class="card">
+          <h2>Розрахуйте вашу ціну</h2>
+
+          <div class="slider-container">
+            <div class="slider-label">
+              <span>Тривалість аудіо</span>
+              <span class="slider-value" id="minutesDisplay">500 хвилин</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="5000"
+              value="500"
+              class="slider"
+              id="minutesSlider"
+            />
+
+            <div class="presets">
+              <button class="preset-btn" data-minutes="100">100 хв</button>
+              <button class="preset-btn" data-minutes="500">500 хв</button>
+              <button class="preset-btn" data-minutes="1000">1000 хв</button>
+              <button class="preset-btn" data-minutes="3000">3000 хв</button>
+              <button class="preset-btn" data-minutes="5000">5000 хв</button>
+            </div>
+          </div>
+
+          <div class="price-display">
+            <div class="total-price" id="totalPrice">$17.00</div>
+            <div class="currency-toggle">
+              <button class="currency-btn active" data-currency="UAH">
+                UAH
+              </button>
+              <button class="currency-btn" data-currency="EUR">EUR</button>
+              <button class="currency-btn" data-currency="USD">USD</button>
+            </div>
+
+            <div class="exchange-rate-info">
+              <div class="rate-display">
+                <div class="rate-label">Курс обміну</div>
+                <div class="rate-value" id="exchangeRateDisplay">
+                  1 USD = 37.00 UAH
+                </div>
+                <div class="rate-timestamp" id="rateTimestamp">
+                  Завантаження...
+                </div>
+              </div>
+              <button class="refresh-btn" id="refreshRateBtn">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+                  />
+                </svg>
+                Оновити
+              </button>
+            </div>
+
+            <div class="breakdown">
+              <div class="breakdown-item">
+                <span>Плата за запуск: $10</span>
+                <span id="baseFeeDisplay">$10.00</span>
+              </div>
+              <div class="breakdown-item">
+                <span>Вартість за хвилини × кількість</span>
+                <span id="processingCost">$12.00</span>
+              </div>
+              <div class="breakdown-item">
+                <span>Тариф за хвилину</span>
+                <span id="rateDisplay">$0.024/min</span>
+              </div>
+              <div class="breakdown-item">
+                <span>Середня ціна за хвилину</span>
+                <span id="avgDisplay">$0.034/min</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tier-indicator">
+            <h3>Поточна формула тарифу</h3>
+            <p id="currentFormula">Гіпербола: A / (1 + B × x)</p>
+          </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="card">
+          <h2>Крива ціни</h2>
+          <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula Configuration -->
+      <div class="card card--full">
+        <h2>Налаштування формули</h2>
+
+        <div class="grid" style="margin-bottom: var(--space-24)">
+          <div>
+            <label class="form-label">Тип формули</label>
+            <select id="formulaType" class="form-control">
+              <option value="hyperbolic">Гіпербола: A / (1 + B × x)</option>
+              <option value="power">Степенева функція: A × x^(-B)</option>
+              <option value="logarithmic">Логарифмічна: A - B × ln(x)</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label"
+              >Плата за запуск: $<span id="baseFeeValue">10</span></label
+            >
+            <input
+              type="range"
+              min="1"
+              max="20"
+              value="10"
+              step="1"
+              class="slider"
+              id="baseFeeSlider"
+            />
+          </div>
+        </div>
+
+        <div class="grid" style="margin-bottom: var(--space-24)">
+          <div>
+            <label class="form-label" id="paramALabel"
+              >Параметр A: <span id="paramAValue">0.03</span></label
+            >
+            <input
+              type="range"
+              min="0.005"
+              max="0.2"
+              value="0.03"
+              step="0.001"
+              class="slider"
+              id="paramASlider"
+            />
+          </div>
+          <div>
+            <label class="form-label" id="paramBLabel"
+              >Параметр B: <span id="paramBValue">0.0005</span></label
+            >
+            <input
+              type="range"
+              min="0.0001"
+              max="0.002"
+              value="0.0005"
+              step="0.00001"
+              class="slider"
+              id="paramBSlider"
+            />
+          </div>
+        </div>
+
+        <div style="display: flex; gap: var(--space-8)">
+          <button class="btn btn--secondary" id="resetBtn">
+            Скинути до стандартних
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
