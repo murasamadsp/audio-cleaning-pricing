@@ -10,10 +10,13 @@ const API_ENDPOINTS = [
 const REFRESH_INTERVAL = 1800000; // 30 minutes
 let lastUpdateTime = null;
 let refreshTimer = null;
+// Pricing presets
+// baseFee = setup/start fee (fixed cost)
+// A, B = formula parameters affecting per-minute rates
 const PRESETS = {
-  conservative: { baseFee: 15, formula: "hyperbolic", A: 0.08, B: 0.0002 },
-  balanced: { baseFee: 5, formula: "hyperbolic", A: 0.03, B: 0.0005 },
-  aggressive: { baseFee: 3, formula: "hyperbolic", A: 0.015, B: 0.0008 },
+    conservative: { baseFee: 15, formula: "hyperbolic", A: 0.08, B: 0.0002 }, // Higher setup fee, lower per-minute rates
+    balanced: { baseFee: 5, formula: "hyperbolic", A: 0.03, B: 0.0005 }, // Standard setup fee, balanced rates
+    aggressive: { baseFee: 3, formula: "hyperbolic", A: 0.015, B: 0.0008 }, // Lower setup fee, higher per-minute rates
 };
 
 const FORMULAS = {
@@ -49,10 +52,10 @@ const FORMULAS = {
 // State
 let currentMinutes = 500;
 let currentCurrency = "USD";
-let baseFee = 5;
+let baseFee = 5; // Fixed fee for processing start/setup
 let currentFormula = "hyperbolic";
-let paramA = 0.03;
-let paramB = 0.0005;
+let paramA = 0.03; // Formula parameter A (affects per-minute rate)
+let paramB = 0.0005; // Formula parameter B (affects scaling)
 let priceChart = null;
 
 // DOM Elements
@@ -73,15 +76,16 @@ function calculateRatePerMinute(minutes) {
 }
 
 // Calculate price
+// Total price = baseFee (setup/start fee) + (ratePerMinute × minutes)
 function calculatePrice(minutes) {
-  const rate = calculateRatePerMinute(minutes);
-  const processingCost = minutes * rate;
-  const total = baseFee + processingCost;
+  const rate = calculateRatePerMinute(minutes); // Price per minute using current formula
+  const processingCost = minutes * rate; // Variable cost based on duration
+  const total = baseFee + processingCost; // Fixed fee + variable cost
   return {
     total,
-    processingCost,
-    rate,
-    avgPerMinute: minutes > 0 ? total / minutes : 0,
+    processingCost, // Variable cost (rate × minutes)
+    rate, // Current rate per minute
+    avgPerMinute: minutes > 0 ? total / minutes : 0, // Average price per minute
   };
 }
 
@@ -199,18 +203,20 @@ function updateFormulaControls() {
 
 // Get current theme colors
 function getChartColors() {
-  const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
   if (isDark) {
     return {
       primary: "#4fd1c9", // Teal-300 for dark theme
-      text: "#f7fafc",    // Gray-100 for dark theme
-      border: "#4a5568"   // Gray-600 for dark theme
+      text: "#f7fafc", // Gray-100 for dark theme
+      border: "#4a5568", // Gray-600 for dark theme
     };
   } else {
     return {
       primary: "#2185d0", // Blue-600 for light theme
-      text: "#1a202c",    // Slate-900 for light theme
-      border: "#cbd5e0"   // Gray-300 for light theme
+      text: "#1a202c", // Slate-900 for light theme
+      border: "#cbd5e0", // Gray-300 for light theme
     };
   }
 }
@@ -231,43 +237,43 @@ function initChart() {
 
   priceChart = new Chart(ctx, {
     type: "line",
-        data: {
-          datasets: [
-            {
-              label: "Загальна ціна",
-              data: dataPoints,
-              borderColor: colors.primary,
-              backgroundColor: colors.primary + "20",
-              borderWidth: 2,
-              pointRadius: 0,
-              tension: 0.4,
-              fill: true,
-            },
-            {
-              label: "Поточна позиція",
-              data: [
-                { x: currentMinutes, y: calculatePrice(currentMinutes).total },
-              ],
-              borderColor: "#e67e22",
-              backgroundColor: "#e67e22",
-              pointRadius: 8,
-              pointHoverRadius: 10,
-              showLine: false,
-            },
-          ],
+    data: {
+      datasets: [
+        {
+          label: "Загальна ціна",
+          data: dataPoints,
+          borderColor: colors.primary,
+          backgroundColor: colors.primary + "20",
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.4,
+          fill: true,
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: {
-            mode: "index",
-            intersect: false,
-          },
-          plugins: {
-            legend: {
-              display: true,
-              labels: {
-                color: colors.text,
+        {
+          label: "Поточна позиція",
+          data: [
+            { x: currentMinutes, y: calculatePrice(currentMinutes).total },
+          ],
+          borderColor: "#e67e22",
+          backgroundColor: "#e67e22",
+          pointRadius: 8,
+          pointHoverRadius: 10,
+          showLine: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: "index",
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: colors.text,
             font: {
               size: 12,
               family: "var(--font-family-base)",
@@ -276,15 +282,15 @@ function initChart() {
             padding: 20,
           },
         },
-            tooltip: {
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
-              titleColor: "#fff",
-              bodyColor: "#fff",
-              borderColor: colors.primary,
-              borderWidth: 1,
-              cornerRadius: 8,
-              displayColors: false,
-              callbacks: {
+        tooltip: {
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          titleColor: "#fff",
+          bodyColor: "#fff",
+          borderColor: colors.primary,
+          borderWidth: 1,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: {
             title: function (context) {
               return `Тривалість: ${context[0].parsed.x} хвилин`;
             },
@@ -299,61 +305,61 @@ function initChart() {
           },
         },
       },
-          scales: {
-            x: {
-              type: "linear",
-              title: {
-                display: true,
-                text: "Хвилини аудіо",
-                color: colors.text,
-                font: {
-                  size: 14,
-                  weight: "500",
-                  family: "var(--font-family-base)",
-                },
-              },
-              grid: {
-                color: colors.border + "40",
-                drawBorder: false,
-              },
-              ticks: {
-                color: colors.text,
-                font: {
-                  size: 12,
-                  family: "var(--font-family-base)",
-                },
-                callback: function (value) {
-                  return value + " хв";
-                },
-              },
-            },
-            y: {
-              title: {
-                display: true,
-                text: "Загальна ціна",
-                color: colors.text,
-                font: {
-                  size: 14,
-                  weight: "500",
-                  family: "var(--font-family-base)",
-                },
-              },
-              grid: {
-                color: colors.border + "40",
-                drawBorder: false,
-              },
-              ticks: {
-                color: colors.text,
-                font: {
-                  size: 12,
-                  family: "var(--font-family-base)",
-                },
-                callback: function (value) {
-                  return formatCurrency(value);
-                },
-              },
+      scales: {
+        x: {
+          type: "linear",
+          title: {
+            display: true,
+            text: "Хвилини аудіо",
+            color: colors.text,
+            font: {
+              size: 14,
+              weight: "500",
+              family: "var(--font-family-base)",
             },
           },
+          grid: {
+            color: colors.border + "40",
+            drawBorder: false,
+          },
+          ticks: {
+            color: colors.text,
+            font: {
+              size: 12,
+              family: "var(--font-family-base)",
+            },
+            callback: function (value) {
+              return value + " хв";
+            },
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: "Загальна ціна",
+            color: colors.text,
+            font: {
+              size: 14,
+              weight: "500",
+              family: "var(--font-family-base)",
+            },
+          },
+          grid: {
+            color: colors.border + "40",
+            drawBorder: false,
+          },
+          ticks: {
+            color: colors.text,
+            font: {
+              size: 12,
+              family: "var(--font-family-base)",
+            },
+            callback: function (value) {
+              return formatCurrency(value);
+            },
+          },
+        },
+      },
       elements: {
         point: {
           hoverRadius: 8,
@@ -524,13 +530,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Add theme change listener for chart colors
   if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      // Reinitialize chart with new colors when theme changes
-      if (priceChart) {
-        priceChart.destroy();
-        initChart();
-      }
-    });
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", () => {
+        // Reinitialize chart with new colors when theme changes
+        if (priceChart) {
+          priceChart.destroy();
+          initChart();
+        }
+      });
   }
 
   // Add global error handler
