@@ -180,7 +180,7 @@ function calculatePrice(minutes) {
  * Updates slider progress visual indicator
  */
 function updateSliderProgress() {
-  const progress = (currentMinutes / 5000) * 100;
+  const progress = (currentMinutes / 6000) * 100;
   slider.style.setProperty("--slider-progress", progress + "%");
 }
 
@@ -274,7 +274,7 @@ function initChart() {
 
   const dataPoints = [];
 
-  for (let i = 0; i <= 5000; i += 50) {
+  for (let i = 0; i <= 6000; i += 50) {
     const price = calculatePrice(i);
     dataPoints.push({ x: i, y: price.total });
   }
@@ -311,6 +311,14 @@ function initChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 5,
+          right: 5,
+          bottom: 5,
+          left: 5,
+        },
+      },
       interaction: {
         mode: "index",
         intersect: false,
@@ -435,7 +443,7 @@ function updateChartData() {
     const dataPoints = [];
 
     // Recalculate all data points for the new formula
-    for (let i = 0; i <= 5000; i += 50) {
+    for (let i = 0; i <= 6000; i += 50) {
       const price = calculatePrice(i);
       dataPoints.push({ x: i, y: price.total });
     }
