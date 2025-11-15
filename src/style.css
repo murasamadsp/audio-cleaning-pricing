@@ -104,9 +104,14 @@
   --space-10: 10px;
   --space-12: 12px;
   --space-16: 16px;
+  --space-18: 18px;
   --space-20: 20px;
   --space-24: 24px;
+  --space-28: 28px;
   --space-32: 32px;
+  --space-40: 40px;
+  --space-44: 44px;
+  --space-48: 48px;
 
   --radius-sm: 6px;
   --radius-base: 8px;
@@ -245,40 +250,19 @@ body {
 
 .header {
   text-align: center;
-  margin-bottom: var(--space-32);
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-48);
+  padding: var(--space-24) 0;
+  position: relative;
   animation: fadeInUp 0.8s ease-out;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: var(--space-32);
-  position: relative;
-}
-
-.header::before {
-  content: "";
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--color-primary) 0%,
-    var(--color-primary-hover) 50%,
-    var(--color-primary) 100%
-  );
-  border-radius: var(--radius-full);
-  opacity: 0.8;
-}
-
 .header h1 {
-  font-size: var(--font-size-4xl);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
   font-weight: 700;
-  margin: 0 0 var(--space-12) 0;
+  margin: 0 0 var(--space-20) 0;
   color: var(--color-text);
-  line-height: 1.1;
+  line-height: 1.2;
   letter-spacing: -0.02em;
   position: relative;
   display: inline-block;
@@ -310,14 +294,13 @@ body {
 .header p {
   font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
-  margin: 0;
+  margin: 0 auto;
   font-weight: 500;
   max-width: 500px;
-  margin: 0 auto;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  position: relative;
   opacity: 0.9;
+  padding-top: var(--space-4);
 }
 
 .grid {
@@ -327,14 +310,46 @@ body {
   margin-bottom: var(--space-24);
 }
 
-/* Tablet and larger screens */
-@media (min-width: 768px) {
+/* Small tablets (640px+) */
+@media (min-width: 640px) {
   .grid {
     grid-template-columns: 1fr 1fr;
   }
+}
 
+/* Large tablets and small laptops (1024px+) */
+@media (min-width: 1024px) {
   .container {
-    padding: var(--space-32) var(--space-24);
+    padding: var(--space-32) var(--space-32);
+  }
+
+  .grid {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card {
+    padding: var(--space-32);
+  }
+}
+
+/* Desktop screens (1280px+) */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* Ultra-wide screens (1600px+) */
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1200px;
+    padding: var(--space-48) var(--space-40);
+  }
+
+  .grid {
+    gap: var(--space-32);
   }
 
   .card {
@@ -345,16 +360,41 @@ body {
 /* Large screens */
 @media (min-width: 1024px) {
   .container {
-    max-width: 1400px;
     padding: var(--space-40) var(--space-32);
-  }
-
-  .header h1 {
-    font-size: var(--font-size-5xl);
   }
 
   .card h2 {
     font-size: var(--font-size-3xl);
+  }
+}
+
+/* Laptop screens (1024px-1440px) */
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .container {
+    padding: var(--space-32) var(--space-24);
+  }
+
+  .header {
+    margin-top: var(--space-16);
+    margin-bottom: var(--space-48);
+    padding: var(--space-32) 0;
+  }
+
+  .header h1 {
+    font-size: 2.25rem;
+    margin-bottom: var(--space-20);
+  }
+
+  .total-price {
+    font-size: 3rem;
+  }
+
+  .slider-value {
+    font-size: 1.75rem;
+  }
+
+  .card {
+    padding: var(--space-28);
   }
 }
 
@@ -374,14 +414,15 @@ body {
   }
 
   .header {
-    margin-bottom: var(--space-32);
-    text-align: center;
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-40);
+    padding: var(--space-20) 0;
   }
 
   .header h1 {
     font-size: var(--font-size-3xl);
     line-height: 1.2;
-    margin-bottom: var(--space-12);
+    margin-bottom: var(--space-16);
   }
 
   .header p {
@@ -392,12 +433,13 @@ body {
   .grid {
     gap: var(--space-20);
     margin-bottom: var(--space-20);
+    grid-template-columns: 1fr; /* Ensure single column on mobile */
   }
 
   .card {
-    padding: var(--space-24);
+    padding: var(--space-20);
     border-radius: var(--radius-lg);
-    margin-bottom: var(--space-20);
+    margin-bottom: var(--space-16);
     box-shadow: var(--shadow-lg), var(--glow-accent);
   }
 
@@ -407,75 +449,80 @@ body {
 
   .card h2 {
     font-size: var(--font-size-xl);
-    margin-bottom: var(--space-20);
+    margin-bottom: var(--space-16);
     text-align: center;
   }
 
   .total-price {
-    font-size: 44px;
-    margin-bottom: var(--space-20);
+    font-size: 42px;
+    margin-bottom: var(--space-16);
   }
 
   .currency-toggle {
     justify-content: center;
-    margin-bottom: var(--space-20);
-    gap: var(--space-12);
+    margin-bottom: var(--space-16);
+    gap: var(--space-8);
+    flex-wrap: wrap;
   }
 
   .currency-btn {
     flex: 1;
-    max-width: 140px;
-    padding: var(--space-12) var(--space-20);
-    font-size: var(--font-size-base);
+    min-width: 80px;
+    max-width: 120px;
+    padding: var(--space-12) var(--space-16);
+    font-size: var(--font-size-sm);
     border-radius: var(--radius-md);
   }
 
   .slider-container {
-    margin-bottom: var(--space-24);
-  }
-
-  .slider-label {
     margin-bottom: var(--space-20);
   }
 
+  .slider-label {
+    margin-bottom: var(--space-16);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+  }
+
   .slider-label span:first-child {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
   }
 
   .slider-value {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
   }
 
   .presets {
     justify-content: center;
     flex-wrap: wrap;
-    gap: var(--space-10);
-    margin-top: var(--space-24);
+    gap: var(--space-8);
+    margin-top: var(--space-20);
   }
 
   .preset-btn {
-    padding: var(--space-12) var(--space-20);
-    font-size: var(--font-size-base);
-    min-width: 90px;
+    padding: var(--space-10) var(--space-16);
+    font-size: var(--font-size-sm);
+    min-width: 80px;
     border-radius: var(--radius-lg);
   }
 
   .price-display {
-    padding: var(--space-24);
-    margin-bottom: var(--space-24);
+    padding: var(--space-20);
+    margin-bottom: var(--space-20);
     border-radius: var(--radius-lg);
   }
 
   .breakdown {
-    padding-top: var(--space-20);
+    padding-top: var(--space-16);
   }
 
   .breakdown-item {
-    font-size: var(--font-size-base);
-    margin-bottom: var(--space-12);
-    padding: var(--space-12) 0;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-10);
+    padding: var(--space-10) 0;
     border-bottom: 1px solid var(--color-border);
   }
 
@@ -484,27 +531,27 @@ body {
   }
 
   .tier-indicator {
-    padding: var(--space-20);
-    margin-top: var(--space-24);
+    padding: var(--space-16);
+    margin-top: var(--space-20);
     text-align: center;
     border-radius: var(--radius-md);
   }
 
   .tier-indicator h3 {
-    font-size: var(--font-size-base);
-    margin-bottom: var(--space-12);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-8);
   }
 
   .tier-indicator p {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
   }
 
   .exchange-rate-info {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--space-16);
-    padding: var(--space-20);
-    margin-top: var(--space-20);
+    gap: var(--space-12);
+    padding: var(--space-16);
+    margin-top: var(--space-16);
     border-radius: var(--radius-md);
   }
 
@@ -513,46 +560,40 @@ body {
   }
 
   .rate-value {
-    font-size: var(--font-size-lg);
-    margin-bottom: var(--space-6);
+    font-size: var(--font-size-base);
+    margin-bottom: var(--space-4);
   }
 
   .refresh-btn {
     align-self: stretch;
     justify-content: center;
-    padding: var(--space-16) var(--space-24);
+    padding: var(--space-14) var(--space-20);
     border-radius: var(--radius-md);
   }
 
   .chart-container {
-    height: 280px;
-    margin: var(--space-20) 0;
+    height: 250px;
+    margin: var(--space-16) 0;
     border-radius: var(--radius-md);
   }
 
   .form-label {
-    font-size: var(--font-size-base);
-    margin-bottom: var(--space-12);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-8);
     font-weight: var(--font-weight-semibold);
   }
 
   .form-control {
     font-size: var(--font-size-base);
-    padding: var(--space-16) var(--space-20);
+    padding: var(--space-14) var(--space-16);
     border-radius: var(--radius-md);
   }
 
   .btn {
-    padding: var(--space-16) var(--space-28);
-    font-size: var(--font-size-base);
+    padding: var(--space-14) var(--space-24);
+    font-size: var(--font-size-sm);
     border-radius: var(--radius-md);
     font-weight: var(--font-weight-semibold);
-  }
-
-  /* Stack formula controls vertically on mobile */
-  .grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-24);
   }
 
   /* Improve touch targets */
@@ -560,23 +601,23 @@ body {
   .currency-btn,
   .btn,
   .refresh-btn {
-    min-height: 48px; /* Improved touch target */
+    min-height: 44px; /* Improved touch target */
     touch-action: manipulation;
   }
 
   /* Better slider interaction on mobile */
   .slider {
-    height: 8px;
+    height: 6px;
   }
 
   .slider::-webkit-slider-thumb {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
 
   .slider::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
 }
 
@@ -586,77 +627,96 @@ body {
     padding: var(--space-16) var(--space-12);
   }
 
+  .header {
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-32);
+    padding: var(--space-16) 0;
+  }
+
   .header h1 {
-    font-size: var(--font-size-2xl);
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-12);
   }
 
   .header p {
     font-size: var(--font-size-sm);
+    padding: var(--space-4) var(--space-4) 0;
   }
 
   .card {
-    padding: var(--space-20);
-    margin-bottom: var(--space-16);
+    padding: var(--space-16);
+    margin-bottom: var(--space-12);
   }
 
   .card h2 {
     font-size: var(--font-size-lg);
-    margin-bottom: var(--space-16);
+    margin-bottom: var(--space-12);
   }
 
   .total-price {
-    font-size: 40px;
-    margin-bottom: var(--space-16);
+    font-size: 36px;
+    margin-bottom: var(--space-12);
   }
 
   .currency-btn {
-    max-width: 120px;
-    padding: var(--space-10) var(--space-16);
-    font-size: var(--font-size-sm);
+    min-width: 70px;
+    max-width: 100px;
+    padding: var(--space-8) var(--space-12);
+    font-size: var(--font-size-xs);
   }
 
   .slider-value {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
   }
 
   .presets {
-    gap: var(--space-8);
-    margin-top: var(--space-20);
+    gap: var(--space-6);
+    margin-top: var(--space-16);
   }
 
   .preset-btn {
-    padding: var(--space-10) var(--space-16);
-    font-size: var(--font-size-sm);
-    min-width: 80px;
+    padding: var(--space-8) var(--space-12);
+    font-size: var(--font-size-xs);
+    min-width: 70px;
   }
 
   .price-display {
-    padding: var(--space-20);
-    margin-bottom: var(--space-20);
+    padding: var(--space-16);
+    margin-bottom: var(--space-16);
   }
 
   .breakdown-item {
-    padding: var(--space-10) 0;
-    font-size: var(--font-size-sm);
+    padding: var(--space-8) 0;
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--space-8);
   }
 
   .chart-container {
-    height: 240px;
-    margin: var(--space-16) 0;
+    height: 200px;
+    margin: var(--space-12) 0;
   }
 
   .form-control {
-    padding: var(--space-14) var(--space-16);
-  }
-
-  .btn {
-    padding: var(--space-14) var(--space-24);
+    padding: var(--space-12) var(--space-14);
     font-size: var(--font-size-sm);
   }
 
+  .btn {
+    padding: var(--space-12) var(--space-20);
+    font-size: var(--font-size-xs);
+  }
+
   .refresh-btn {
-    padding: var(--space-14) var(--space-20);
+    padding: var(--space-12) var(--space-16);
+  }
+
+  .tier-indicator {
+    padding: var(--space-12);
+    margin-top: var(--space-16);
+  }
+
+  .exchange-rate-info {
+    padding: var(--space-12);
+    margin-top: var(--space-12);
   }
 
   /* Even smaller touch targets for very small screens */
@@ -664,17 +724,50 @@ body {
   .currency-btn,
   .btn,
   .refresh-btn {
-    min-height: 44px;
+    min-height: 40px;
   }
 
   .slider::-webkit-slider-thumb {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
 
   .slider::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Medium screens (768px to 1023px) - tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    padding: var(--space-24) var(--space-20);
+  }
+
+  .header {
+    margin-top: var(--space-12);
+    margin-bottom: var(--space-44);
+    padding: var(--space-28) 0;
+  }
+
+  .header h1 {
+    margin-bottom: var(--space-18);
+  }
+
+  .card {
+    padding: var(--space-24);
+  }
+
+  .total-price {
+    font-size: 48px;
+  }
+
+  .chart-container {
+    height: 300px;
+  }
+
+  .grid {
+    gap: var(--space-20);
   }
 }
 
@@ -784,6 +877,8 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-12);
+  flex-wrap: wrap;
+  gap: var(--space-8);
 }
 
 .slider-label span {
@@ -793,9 +888,12 @@ body {
 }
 
 .slider-value {
-  font-size: var(--font-size-3xl);
+  font-size: clamp(1.25rem, 3vw, 2rem);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .slider {
@@ -907,7 +1005,7 @@ body {
 }
 
 .total-price {
-  font-size: 52px;
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
   font-weight: 600;
   color: var(--color-primary);
   margin: 0;
@@ -1046,12 +1144,7 @@ body {
   border-radius: 50% !important;
 }
 
-/* Responsive chart adjustments */
-@media (max-width: 768px) {
-  .chart-container {
-    height: 280px;
-  }
-}
+/* Responsive chart adjustments are now handled in specific breakpoints above */
 
 .tier-table {
   width: 100%;
@@ -1427,21 +1520,13 @@ body {
 }
 
 .btn--secondary {
-  background: linear-gradient(
-    135deg,
-    var(--color-secondary) 0%,
-    var(--color-secondary-hover) 100%
-  );
+  background: var(--color-secondary);
   color: var(--color-text);
   border-color: var(--color-border);
 }
 
 .btn--secondary:hover {
-  background: linear-gradient(
-    135deg,
-    var(--color-secondary-hover) 0%,
-    var(--color-primary) 100%
-  );
+  background: var(--color-secondary-hover);
   border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(33, 133, 208, 0.15);
@@ -1483,4 +1568,37 @@ body {
 
 .form-control:hover {
   border-color: var(--color-primary);
+}
+
+/* Form grid for formula configuration */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-20);
+  margin-bottom: var(--space-24);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Responsive form grid */
+@media (min-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-24);
+  }
+}
+
+@media (max-width: 767px) {
+  .form-grid {
+    gap: var(--space-16);
+    margin-bottom: var(--space-20);
+  }
+
+  .form-group {
+    gap: var(--space-6);
+  }
 }
