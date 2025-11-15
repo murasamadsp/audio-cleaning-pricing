@@ -160,7 +160,7 @@ function updateDisplay() {
     currentFormulaDisplay.textContent = `${formula.name}: ${formula.equation}`;
 
     updateSliderProgress();
-    updateChart();
+    safeUpdateChart();
 }
 
 // Update formula controls
@@ -189,7 +189,9 @@ function updateFormulaControls() {
 
 // Initialize chart
 function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
+    const ctx = document.getElementById('priceChart');
+    if (!ctx) return;
+
     const dataPoints = [];
 
     for (let i = 0; i <= 5000; i += 50) {
@@ -213,7 +215,8 @@ function initChart() {
                     backgroundColor: primaryColor + '20',
                     borderWidth: 2,
                     pointRadius: 0,
-                    tension: 0.4
+                    tension: 0.4,
+                    fill: true
                 },
                 {
                     label: 'Поточна позиція',
@@ -221,30 +224,49 @@ function initChart() {
                     borderColor: '#e67e22',
                     backgroundColor: '#e67e22',
                     pointRadius: 8,
-                    pointHoverRadius: 10
+                    pointHoverRadius: 10,
+                    showLine: false
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
                 legend: {
                     display: true,
                     labels: {
                         color: textColor,
                         font: {
-                            size: 12
-                        }
+                            size: 12,
+                            family: 'var(--font-family-base)'
+                        },
+                        usePointStyle: true,
+                        padding: 20
                     }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: primaryColor,
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: false,
                     callbacks: {
+                        title: function(context) {
+                            return `Тривалість: ${context[0].parsed.x} хвилин`;
+                        },
                         label: function(context) {
+                            const value = context.parsed.y;
                             if (context.datasetIndex === 0) {
-                                return `Ціна: ${formatCurrency(context.parsed.y)}`;
+                                return `Загальна ціна: ${formatCurrency(value)}`;
                             } else {
-                                return `Поточна: ${currentMinutes} хв = ${formatCurrency(context.parsed.y)}`;
+                                return `Поточна позиція: ${formatCurrency(value)}`;
                             }
                         }
                     }
@@ -256,30 +278,59 @@ function initChart() {
                     title: {
                         display: true,
                         text: 'Хвилини аудіо',
-                        color: textColor
+                        color: textColor,
+                        font: {
+                            size: 14,
+                            weight: '500',
+                            family: 'var(--font-family-base)'
+                        }
                     },
                     grid: {
-                        color: borderColor
+                        color: borderColor + '40',
+                        drawBorder: false
                     },
                     ticks: {
-                        color: textColor
+                        color: textColor,
+                        font: {
+                            size: 12,
+                            family: 'var(--font-family-base)'
+                        },
+                        callback: function(value) {
+                            return value + ' хв';
+                        }
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Загальна ціна ($)',
-                        color: textColor
+                        text: 'Загальна ціна',
+                        color: textColor,
+                        font: {
+                            size: 14,
+                            weight: '500',
+                            family: 'var(--font-family-base)'
+                        }
                     },
                     grid: {
-                        color: borderColor
+                        color: borderColor + '40',
+                        drawBorder: false
                     },
                     ticks: {
                         color: textColor,
+                        font: {
+                            size: 12,
+                            family: 'var(--font-family-base)'
+                        },
                         callback: function(value) {
-                            return '$' + value.toFixed(0);
+                            return formatCurrency(value);
                         }
                     }
+                }
+            },
+            elements: {
+                point: {
+                    hoverRadius: 8,
+                    hoverBorderWidth: 2
                 }
             }
         }
@@ -394,8 +445,53 @@ document.querySelectorAll('.currency-btn').forEach(btn => {
     });
 });
 
+// Health check function
+function healthCheck() {
+    const checks = {
+        chart: !!priceChart,
+        domElements: !!document.getElementById('priceChart'),
+        calculations: typeof calculatePrice === 'function',
+        api: typeof fetchExchangeRate === 'function'
+    };
+
+    console.log('🔍 Health Check Results:', checks);
+
+    const allPassed = Object.values(checks).every(check => check);
+    if (allPassed) {
+        console.log('✅ All systems operational');
+    } else {
+        console.warn('⚠️ Some systems may have issues');
+    }
+
+    return checks;
+}
+
+// Error handling for chart
+function safeUpdateChart() {
+    try {
+        updateChart();
+    } catch (error) {
+        console.error('Chart update error:', error);
+    }
+}
+
 // Initialize
-initChart();
-updateFormulaControls();
-updateDisplay();
-fetchExchangeRate();
+document.addEventListener('DOMContentLoaded', () => {
+    initChart();
+    updateFormulaControls();
+    updateDisplay();
+    fetchExchangeRate();
+
+    // Run health check after initialization
+    setTimeout(healthCheck, 1000);
+
+    // Add global error handler
+    window.addEventListener('error', (e) => {
+        console.error('Global error:', e.error);
+    });
+
+    // Add unhandled promise rejection handler
+    window.addEventListener('unhandledrejection', (e) => {
+        console.error('Unhandled promise rejection:', e.reason);
+    });
+});

@@ -1,3 +1,5 @@
+@import "modern-normalize/modern-normalize.css";
+
 :root {
   /* Primitive Color Tokens */
   --color-white: rgba(255, 255, 255, 1);
@@ -217,6 +219,107 @@ body {
 @media (min-width: 768px) {
   .grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  .container {
+    padding: var(--space-16) var(--space-12);
+  }
+
+  .header h1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .total-price {
+    font-size: 36px;
+  }
+
+  .slider-container {
+    margin-bottom: var(--space-16);
+  }
+
+  .presets {
+    flex-wrap: wrap;
+    gap: var(--space-6);
+  }
+
+  .preset-btn {
+    padding: var(--space-6) var(--space-12);
+    font-size: var(--font-size-xs);
+  }
+
+  .price-display {
+    padding: var(--space-16);
+  }
+
+  .breakdown-item {
+    font-size: var(--font-size-sm);
+  }
+
+  .exchange-rate-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-12);
+  }
+
+  .refresh-btn {
+    align-self: flex-end;
+  }
+}
+
+/* Focus and accessibility improvements */
+.slider:focus-visible,
+.form-control:focus-visible,
+.preset-btn:focus-visible,
+.currency-btn:focus-visible,
+.btn:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: var(--color-text);
+    --color-card-border: var(--color-text);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .slider::-webkit-slider-thumb,
+  .slider::-moz-range-thumb {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .chart-container,
+  .exchange-rate-info,
+  .slider-container {
+    display: none;
+  }
+
+  .card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .total-price {
+    color: #000 !important;
+    font-size: 24px;
   }
 }
 
@@ -464,6 +567,62 @@ body {
   position: relative;
   height: 350px;
   width: 100%;
+  margin: var(--space-16) 0;
+  border-radius: var(--radius-base);
+  overflow: hidden;
+}
+
+/* Chart.js canvas styles */
+.chart-container canvas {
+  border-radius: var(--radius-base);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Custom tooltip styles for Chart.js */
+.chartjs-tooltip {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border: 1px solid var(--color-primary) !important;
+  border-radius: var(--radius-base) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.chartjs-tooltip-title {
+  color: var(--color-cream-50) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  font-size: var(--font-size-sm) !important;
+  margin-bottom: var(--space-4) !important;
+}
+
+.chartjs-tooltip-body {
+  color: var(--color-gray-200) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+/* Chart legend improvements */
+.chartjs-legend {
+  margin-top: var(--space-16) !important;
+}
+
+.chartjs-legend-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  margin-right: var(--space-20) !important;
+  cursor: pointer !important;
+  font-size: var(--font-size-sm) !important;
+  color: var(--color-text) !important;
+}
+
+.chartjs-legend-item-point {
+  margin-right: var(--space-8) !important;
+  border-radius: 50% !important;
+}
+
+/* Responsive chart adjustments */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 280px;
+  }
 }
 
 .tier-table {
