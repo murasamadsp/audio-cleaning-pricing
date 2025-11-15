@@ -44,7 +44,7 @@
           </div>
 
           <div class="price-display">
-            <div class="total-price" id="totalPrice">$70.00</div>
+            <div class="total-price" id="totalPrice">$17.00</div>
             <div class="currency-toggle">
               <button class="currency-btn active" data-currency="USD">
                 USD
@@ -82,21 +82,21 @@
             </div>
 
             <div class="breakdown">
-              <div class="breakdown-item">
-                <span>Базова плата</span>
-                <span id="baseFeeDisplay">$10.00</span>
-              </div>
-              <div class="breakdown-item">
-                <span>Вартість обробки</span>
-                <span id="processingCost">$60.00</span>
-              </div>
+                        <div class="breakdown-item">
+                            <span>Базова плата</span>
+                            <span id="baseFeeDisplay">$5.00</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Вартість обробки</span>
+                            <span id="processingCost">$12.00</span>
+                        </div>
               <div class="breakdown-item">
                 <span>Тариф за хвилину</span>
-                <span id="rateDisplay">$0.12/min</span>
+                <span id="rateDisplay">$0.024/min</span>
               </div>
               <div class="breakdown-item">
                 <span>Середня ціна за хвилину</span>
-                <span id="avgDisplay">$0.14/min</span>
+                <span id="avgDisplay">$0.034/min</span>
               </div>
             </div>
           </div>
@@ -141,13 +141,13 @@
           </div>
           <div>
             <label class="form-label"
-              >Базова плата: $<span id="baseFeeValue">10</span></label
+              >Базова плата: $<span id="baseFeeValue">5</span></label
             >
             <input
               type="range"
-              min="5"
-              max="25"
-              value="10"
+              min="1"
+              max="20"
+              value="5"
               step="1"
               class="slider"
               id="baseFeeSlider"
@@ -158,27 +158,27 @@
         <div class="grid" style="margin-bottom: var(--space-24)">
           <div>
             <label class="form-label" id="paramALabel"
-              >Параметр A: <span id="paramAValue">5.00</span></label
+              >Параметр A: <span id="paramAValue">0.03</span></label
             >
             <input
               type="range"
-              min="1"
-              max="20"
-              value="5"
-              step="0.1"
+              min="0.005"
+              max="0.2"
+              value="0.03"
+              step="0.001"
               class="slider"
               id="paramASlider"
             />
           </div>
           <div>
             <label class="form-label" id="paramBLabel"
-              >Параметр B: <span id="paramBValue">0.0001</span></label
+              >Параметр B: <span id="paramBValue">0.0005</span></label
             >
             <input
               type="range"
-              min="0.00001"
-              max="0.001"
-              value="0.0001"
+              min="0.0001"
+              max="0.002"
+              value="0.0005"
               step="0.00001"
               class="slider"
               id="paramBSlider"

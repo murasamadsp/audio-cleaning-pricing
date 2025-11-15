@@ -11,9 +11,9 @@ const REFRESH_INTERVAL = 1800000; // 30 minutes
 let lastUpdateTime = null;
 let refreshTimer = null;
 const PRESETS = {
-    conservative: { baseFee: 15, formula: 'hyperbolic', A: 8, B: 0.00005 },
-    balanced: { baseFee: 10, formula: 'hyperbolic', A: 5, B: 0.0001 },
-    aggressive: { baseFee: 8, formula: 'hyperbolic', A: 3, B: 0.0002 }
+    conservative: { baseFee: 15, formula: 'hyperbolic', A: 0.08, B: 0.0002 },
+    balanced: { baseFee: 5, formula: 'hyperbolic', A: 0.03, B: 0.0005 },
+    aggressive: { baseFee: 3, formula: 'hyperbolic', A: 0.015, B: 0.0008 }
 };
 
 const FORMULAS = {
@@ -22,8 +22,8 @@ const FORMULAS = {
         equation: 'A / (1 + B × x)',
         calculate: (x, A, B) => A / (1 + B * x),
         params: {
-            A: { min: 1, max: 20, default: 5, step: 0.1 },
-            B: { min: 0.00001, max: 0.001, default: 0.0001, step: 0.00001 }
+            A: { min: 0.005, max: 0.2, default: 0.03, step: 0.001 },
+            B: { min: 0.0001, max: 0.002, default: 0.0005, step: 0.00001 }
         }
     },
     power: {
@@ -31,17 +31,17 @@ const FORMULAS = {
         equation: 'A × x^(-B)',
         calculate: (x, A, B) => x > 0 ? A * Math.pow(x, -B) : A,
         params: {
-            A: { min: 10, max: 200, default: 80, step: 1 },
-            B: { min: 0.1, max: 0.8, default: 0.3, step: 0.01 }
+            A: { min: 0.5, max: 5, default: 2, step: 0.1 },
+            B: { min: 0.3, max: 1.2, default: 0.6, step: 0.01 }
         }
     },
     logarithmic: {
         name: 'Логарифмічна',
         equation: 'A - B × ln(x)',
-        calculate: (x, A, B) => x > 0 ? Math.max(0.01, A - B * Math.log(x)) : A,
+        calculate: (x, A, B) => x > 0 ? Math.max(0.005, A - B * Math.log(x)) : A,
         params: {
-            A: { min: 0.05, max: 0.3, default: 0.15, step: 0.01 },
-            B: { min: 0.005, max: 0.05, default: 0.015, step: 0.001 }
+            A: { min: 0.02, max: 0.15, default: 0.08, step: 0.005 },
+            B: { min: 0.002, max: 0.02, default: 0.008, step: 0.001 }
         }
     }
 };
@@ -49,10 +49,10 @@ const FORMULAS = {
 // State
 let currentMinutes = 500;
 let currentCurrency = 'USD';
-let baseFee = 10;
+let baseFee = 5;
 let currentFormula = 'hyperbolic';
-let paramA = 5;
-let paramB = 0.0001;
+let paramA = 0.03;
+let paramB = 0.0005;
 let priceChart = null;
 
 // DOM Elements
