@@ -1,24 +1,38 @@
 import "./style.css";
 
-// Configuration
-let CURRENCY_RATE = 37;
-const FALLBACK_RATE = 37;
+/**
+ * Audio Cleaning Pricing Calculator
+ * Handles pricing calculations for audio processing services
+ */
+
+// =============================================================================
+// CONFIGURATION & CONSTANTS
+// =============================================================================
+
+/** @constant {string[]} API_ENDPOINTS - Currency exchange rate API endpoints */
 const API_ENDPOINTS = [
   "https://api.exchangerate-api.com/v4/latest/USD",
   "https://open.er-api.com/v6/latest/USD",
 ];
-const REFRESH_INTERVAL = 1800000; // 30 minutes
-let lastUpdateTime = null;
-let refreshTimer = null;
-// Pricing presets
-// baseFee = setup/start fee (fixed cost)
-// A, B = formula parameters affecting per-minute rates
-const PRESETS = {
-  conservative: { baseFee: 15, formula: "hyperbolic", A: 0.08, B: 0.0002 }, // Higher setup fee, lower per-minute rates
-  balanced: { baseFee: 5, formula: "hyperbolic", A: 0.03, B: 0.0005 }, // Standard setup fee, balanced rates
-  aggressive: { baseFee: 3, formula: "hyperbolic", A: 0.015, B: 0.0008 }, // Lower setup fee, higher per-minute rates
+
+/** @constant {number} REFRESH_INTERVAL - Rate refresh interval in milliseconds (30 minutes) */
+const REFRESH_INTERVAL = 1800000;
+
+/** @constant {number} FALLBACK_RATE - Fallback UAH to USD rate */
+const FALLBACK_RATE = 37;
+
+/** @constant {number} FALLBACK_EUR_RATE - Fallback EUR to USD rate */
+const FALLBACK_EUR_RATE = 0.85;
+
+/** @constant {Object} DEFAULT_PRICING - Default pricing parameters */
+const DEFAULT_PRICING = {
+  baseFee: 10,
+  formula: "hyperbolic",
+  paramA: 0.03,
+  paramB: 0.0005,
 };
 
+/** @constant {Object} FORMULAS - Available pricing formulas with their parameters */
 const FORMULAS = {
   hyperbolic: {
     name: "Гіпербола",
@@ -49,109 +63,130 @@ const FORMULAS = {
   },
 };
 
-// State
+// =============================================================================
+// STATE MANAGEMENT
+// =============================================================================
+
+/** @type {number} currentMinutes - Currently selected audio duration in minutes */
 let currentMinutes = 500;
-let currentCurrency = "USD";
-let baseFee = 5; // Fixed fee for processing start/setup
+
+/** @type {string} currentCurrency - Currently selected currency (UAH/EUR/USD) */
+let currentCurrency = "UAH";
+
+/** @type {string} currentFormula - Currently selected pricing formula */
 let currentFormula = "hyperbolic";
-let paramA = 0.03; // Formula parameter A (affects per-minute rate)
-let paramB = 0.0005; // Formula parameter B (affects scaling)
+
+/** @type {number} baseFee - Base setup fee */
+let baseFee = 10;
+
+/** @type {number} paramA - Formula parameter A */
+let paramA = 0.03;
+
+/** @type {number} paramB - Formula parameter B */
+let paramB = 0.0005;
+
+/** @type {Chart|null} priceChart - Chart.js instance */
 let priceChart = null;
 
-// DOM Elements
+/** @type {number} CURRENCY_RATE - Current UAH to USD exchange rate */
+let CURRENCY_RATE = FALLBACK_RATE;
+
+/** @type {number} EUR_RATE - Current EUR to USD exchange rate */
+let EUR_RATE = FALLBACK_EUR_RATE;
+
+/** @type {Date|null} lastUpdateTime - Last exchange rate update timestamp */
+let lastUpdateTime = null;
+
+/** @type {number|null} refreshTimer - Timer ID for auto-refresh */
+let refreshTimer = null;
+
+// =============================================================================
+// DOM ELEMENTS
+// =============================================================================
+
+/** @type {HTMLInputElement} slider - Minutes slider element */
 const slider = document.getElementById("minutesSlider");
+
+/** @type {HTMLElement} minutesDisplay - Minutes display element */
 const minutesDisplay = document.getElementById("minutesDisplay");
+
+/** @type {HTMLElement} totalPriceDisplay - Total price display element */
 const totalPriceDisplay = document.getElementById("totalPrice");
+
+/** @type {HTMLElement} baseFeeDisplay - Base fee display element */
 const baseFeeDisplay = document.getElementById("baseFeeDisplay");
+
+/** @type {HTMLElement} processingCostDisplay - Processing cost display element */
 const processingCostDisplay = document.getElementById("processingCost");
+
+/** @type {HTMLElement} rateDisplay - Rate per minute display element */
 const rateDisplay = document.getElementById("rateDisplay");
+
+/** @type {HTMLElement} avgDisplay - Average price display element */
 const avgDisplay = document.getElementById("avgDisplay");
+
+/** @type {HTMLElement} currentFormulaDisplay - Current formula display element */
 const currentFormulaDisplay = document.getElementById("currentFormula");
 
-// Calculate rate per minute using current formula
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+/**
+ * Formats currency value based on selected currency
+ * @param {number} value - Value to format
+ * @returns {string} Formatted currency string
+ */
+function formatCurrency(value) {
+  if (currentCurrency === "UAH") {
+    return `₴${(value * CURRENCY_RATE).toFixed(2)}`;
+  }
+  if (currentCurrency === "EUR") {
+    return `€${(value / EUR_RATE).toFixed(2)}`;
+  }
+  return `$${value.toFixed(2)}`;
+}
+
+/**
+ * Calculates rate per minute using current formula
+ * @param {number} minutes - Audio duration in minutes
+ * @returns {number} Rate per minute
+ */
 function calculateRatePerMinute(minutes) {
   if (minutes === 0) return 0;
   const formula = FORMULAS[currentFormula];
   return formula.calculate(minutes, paramA, paramB);
 }
 
-// Calculate price
-// Total price = baseFee (setup/start fee) + (ratePerMinute × minutes)
+/**
+ * Calculates complete pricing information
+ * @param {number} minutes - Audio duration in minutes
+ * @returns {Object} Pricing breakdown
+ */
 function calculatePrice(minutes) {
-  const rate = calculateRatePerMinute(minutes); // Price per minute using current formula
-  const processingCost = minutes * rate; // Variable cost based on duration
-  const total = baseFee + processingCost; // Fixed fee + variable cost
+  const rate = calculateRatePerMinute(minutes);
+  const processingCost = minutes * rate;
+  const total = baseFee + processingCost;
+
   return {
     total,
-    processingCost, // Variable cost (rate × minutes)
-    rate, // Current rate per minute
-    avgPerMinute: minutes > 0 ? total / minutes : 0, // Average price per minute
+    processingCost,
+    rate,
+    avgPerMinute: minutes > 0 ? total / minutes : 0,
   };
 }
 
-// Format currency
-function formatCurrency(value) {
-  if (currentCurrency === "UAH") {
-    return `₴${(value * CURRENCY_RATE).toFixed(2)}`;
-  }
-  return `$${value.toFixed(2)}`;
-}
-
-// Fetch exchange rate from API
-async function fetchExchangeRate() {
-  const refreshBtn = document.getElementById("refreshRateBtn");
-  const rateDisplay = document.getElementById("exchangeRateDisplay");
-  const timestampDisplay = document.getElementById("rateTimestamp");
-
-  refreshBtn.classList.add("loading");
-  timestampDisplay.textContent = "Оновлення...";
-
-  for (const endpoint of API_ENDPOINTS) {
-    try {
-      const response = await fetch(endpoint);
-      if (!response.ok) throw new Error("API request failed");
-
-      const data = await response.json();
-      const uahRate = data.rates?.UAH || data.rates?.uah;
-
-      if (uahRate && uahRate > 0) {
-        CURRENCY_RATE = uahRate;
-        lastUpdateTime = new Date();
-
-        rateDisplay.textContent = `1 USD = ${CURRENCY_RATE.toFixed(2)} UAH`;
-        timestampDisplay.textContent = `Останнє оновлення: ${lastUpdateTime.toLocaleTimeString(
-          "uk-UA"
-        )}`;
-
-        refreshBtn.classList.remove("loading");
-        updateDisplay();
-
-        // Set up auto-refresh
-        if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(fetchExchangeRate, REFRESH_INTERVAL);
-
-        return;
-      }
-    } catch (error) {
-      console.error(`Failed to fetch from ${endpoint}:`, error);
-    }
-  }
-
-  // All APIs failed, use fallback
-  CURRENCY_RATE = FALLBACK_RATE;
-  rateDisplay.textContent = `1 USD = ${CURRENCY_RATE.toFixed(2)} UAH`;
-  timestampDisplay.textContent = "Використовується резервний курс";
-  refreshBtn.classList.remove("loading");
-  updateDisplay();
-}
-
-// Update slider progress
+/**
+ * Updates slider progress visual indicator
+ */
 function updateSliderProgress() {
   const progress = (currentMinutes / 5000) * 100;
   slider.style.setProperty("--slider-progress", progress + "%");
 }
 
-// Update display
+/**
+ * Updates all display elements with current pricing information
+ */
 function updateDisplay() {
   const { total, processingCost, rate, avgPerMinute } =
     calculatePrice(currentMinutes);
@@ -173,7 +208,9 @@ function updateDisplay() {
   safeUpdateChart();
 }
 
-// Update formula controls
+/**
+ * Updates formula controls (slider ranges and labels) for current formula
+ */
 function updateFormulaControls() {
   const formula = FORMULAS[currentFormula];
   const paramASlider = document.getElementById("paramASlider");
@@ -201,7 +238,14 @@ function updateFormulaControls() {
   )}</span>`;
 }
 
-// Get current theme colors
+// =============================================================================
+// CHART MANAGEMENT
+// =============================================================================
+
+/**
+ * Gets current theme colors for chart
+ * @returns {Object} Color palette for current theme
+ */
 function getChartColors() {
   const isDark =
     window.matchMedia &&
@@ -221,7 +265,9 @@ function getChartColors() {
   }
 }
 
-// Initialize chart
+/**
+ * Initializes the price chart
+ */
 function initChart() {
   const ctx = document.getElementById("priceChart");
   if (!ctx) return;
@@ -370,7 +416,9 @@ function initChart() {
   });
 }
 
-// Update chart
+/**
+ * Updates chart with current position
+ */
 function updateChart() {
   if (priceChart) {
     const price = calculatePrice(currentMinutes);
@@ -379,116 +427,215 @@ function updateChart() {
   }
 }
 
-// Event listeners
-slider.addEventListener("input", (e) => {
-  currentMinutes = parseInt(e.target.value);
+/**
+ * Updates chart data points when formula changes
+ */
+function updateChartData() {
+  if (priceChart) {
+    const dataPoints = [];
+
+    // Recalculate all data points for the new formula
+    for (let i = 0; i <= 5000; i += 50) {
+      const price = calculatePrice(i);
+      dataPoints.push({ x: i, y: price.total });
+    }
+
+    // Update the main curve data
+    priceChart.data.datasets[0].data = dataPoints;
+
+    // Update current position
+    const currentPrice = calculatePrice(currentMinutes);
+    priceChart.data.datasets[1].data = [
+      { x: currentMinutes, y: currentPrice.total },
+    ];
+
+    priceChart.update();
+  }
+}
+
+/**
+ * Safely updates chart with error handling
+ */
+function safeUpdateChart(updateData = false) {
+  try {
+    if (updateData) {
+      updateChartData();
+    } else {
+      updateChart();
+    }
+  } catch (error) {
+    console.error("Chart update error:", error);
+  }
+}
+
+// =============================================================================
+// CURRENCY MANAGEMENT
+// =============================================================================
+
+/**
+ * Fetches exchange rates from API
+ */
+async function fetchExchangeRate() {
+  const refreshBtn = document.getElementById("refreshRateBtn");
+  const rateDisplay = document.getElementById("exchangeRateDisplay");
+  const timestampDisplay = document.getElementById("rateTimestamp");
+
+  refreshBtn.classList.add("loading");
+  timestampDisplay.textContent = "Оновлення...";
+
+  for (const endpoint of API_ENDPOINTS) {
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error("API request failed");
+
+      const data = await response.json();
+      const uahRate = data.rates?.UAH || data.rates?.uah;
+      const eurRate = data.rates?.EUR || data.rates?.eur;
+
+      if (uahRate && uahRate > 0) {
+        CURRENCY_RATE = uahRate;
+      }
+
+      if (eurRate && eurRate > 0) {
+        EUR_RATE = eurRate;
+      }
+
+      if ((uahRate && uahRate > 0) || (eurRate && eurRate > 0)) {
+        lastUpdateTime = new Date();
+
+        rateDisplay.textContent = `1 USD = ${CURRENCY_RATE.toFixed(
+          2
+        )} UAH | €${EUR_RATE.toFixed(2)}`;
+        timestampDisplay.textContent = `Останнє оновлення: ${lastUpdateTime.toLocaleTimeString(
+          "uk-UA"
+        )}`;
+
+        refreshBtn.classList.remove("loading");
+        updateDisplay();
+
+        // Set up auto-refresh
+        if (refreshTimer) clearInterval(refreshTimer);
+        refreshTimer = setInterval(fetchExchangeRate, REFRESH_INTERVAL);
+
+        return;
+      }
+    } catch (error) {
+      console.error(`Failed to fetch from ${endpoint}:`, error);
+    }
+  }
+
+  // All APIs failed, use fallback
+  CURRENCY_RATE = FALLBACK_RATE;
+  EUR_RATE = FALLBACK_EUR_RATE;
+  rateDisplay.textContent = `1 USD = ${CURRENCY_RATE.toFixed(
+    2
+  )} UAH | €${EUR_RATE.toFixed(2)}`;
+  timestampDisplay.textContent = "Використовується резервний курс";
+  refreshBtn.classList.remove("loading");
   updateDisplay();
-});
+}
 
-// Refresh rate button
-document.getElementById("refreshRateBtn").addEventListener("click", () => {
-  fetchExchangeRate();
-});
+// =============================================================================
+// EVENT HANDLERS
+// =============================================================================
 
-document.querySelectorAll(".preset-btn[data-minutes]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    currentMinutes = parseInt(btn.dataset.minutes);
-    slider.value = currentMinutes;
+/**
+ * Initializes all event listeners
+ */
+function initEventListeners() {
+  // Slider input
+  slider.addEventListener("input", (e) => {
+    currentMinutes = parseInt(e.target.value);
     updateDisplay();
   });
-});
 
-// Preset configurations
-document.querySelectorAll(".preset-btn[data-preset]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const preset = PRESETS[btn.dataset.preset];
-    baseFee = preset.baseFee;
-    currentFormula = preset.formula;
-    paramA = preset.A;
-    paramB = preset.B;
+  // Refresh rate button
+  document
+    .getElementById("refreshRateBtn")
+    .addEventListener("click", fetchExchangeRate);
+
+  // Preset minute buttons
+  document.querySelectorAll(".preset-btn[data-minutes]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentMinutes = parseInt(btn.dataset.minutes);
+      slider.value = currentMinutes;
+      updateDisplay();
+    });
+  });
+
+  // Formula type selector
+  document.getElementById("formulaType").addEventListener("change", (e) => {
+    currentFormula = e.target.value;
+    const formula = FORMULAS[currentFormula];
+    paramA = formula.params.A.default;
+    paramB = formula.params.B.default;
+    updateFormulaControls();
+    updateDisplay();
+    safeUpdateChart(true); // Update chart data when formula changes
+  });
+
+  // Base fee slider
+  document.getElementById("baseFeeSlider").addEventListener("input", (e) => {
+    baseFee = parseInt(e.target.value);
+    document.getElementById("baseFeeValue").textContent = baseFee;
+    updateDisplay();
+  });
+
+  // Parameter sliders
+  document.getElementById("paramASlider").addEventListener("input", (e) => {
+    paramA = parseFloat(e.target.value);
+    const formula = FORMULAS[currentFormula];
+    document.getElementById("paramAValue").textContent = paramA.toFixed(
+      formula.params.A.step < 0.1 ? 2 : 1
+    );
+    updateDisplay();
+    safeUpdateChart(true); // Update chart when parameters change
+  });
+
+  document.getElementById("paramBSlider").addEventListener("input", (e) => {
+    paramB = parseFloat(e.target.value);
+    document.getElementById("paramBValue").textContent = paramB.toFixed(5);
+    updateDisplay();
+    safeUpdateChart(true); // Update chart when parameters change
+  });
+
+  // Reset button
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    baseFee = DEFAULT_PRICING.baseFee;
+    currentFormula = DEFAULT_PRICING.formula;
+    paramA = DEFAULT_PRICING.paramA;
+    paramB = DEFAULT_PRICING.paramB;
 
     document.getElementById("baseFeeSlider").value = baseFee;
     document.getElementById("baseFeeValue").textContent = baseFee;
     document.getElementById("formulaType").value = currentFormula;
 
-    document
-      .querySelectorAll(".preset-btn[data-preset]")
-      .forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-
     updateFormulaControls();
     updateDisplay();
+    safeUpdateChart(true); // Update chart data when resetting
   });
-});
 
-// Formula type change
-document.getElementById("formulaType").addEventListener("change", (e) => {
-  currentFormula = e.target.value;
-  const formula = FORMULAS[currentFormula];
-  paramA = formula.params.A.default;
-  paramB = formula.params.B.default;
-  updateFormulaControls();
-  updateDisplay();
-});
-
-// Base fee slider
-document.getElementById("baseFeeSlider").addEventListener("input", (e) => {
-  baseFee = parseInt(e.target.value);
-  document.getElementById("baseFeeValue").textContent = baseFee;
-  updateDisplay();
-});
-
-// Parameter sliders
-document.getElementById("paramASlider").addEventListener("input", (e) => {
-  paramA = parseFloat(e.target.value);
-  const formula = FORMULAS[currentFormula];
-  document.getElementById("paramAValue").textContent = paramA.toFixed(
-    formula.params.A.step < 0.1 ? 2 : 1
-  );
-  updateDisplay();
-});
-
-document.getElementById("paramBSlider").addEventListener("input", (e) => {
-  paramB = parseFloat(e.target.value);
-  document.getElementById("paramBValue").textContent = paramB.toFixed(5);
-  updateDisplay();
-});
-
-// Reset button
-document.getElementById("resetBtn").addEventListener("click", () => {
-  const preset = PRESETS.balanced;
-  baseFee = preset.baseFee;
-  currentFormula = preset.formula;
-  paramA = preset.A;
-  paramB = preset.B;
-
-  document.getElementById("baseFeeSlider").value = baseFee;
-  document.getElementById("baseFeeValue").textContent = baseFee;
-  document.getElementById("formulaType").value = currentFormula;
-
-  document
-    .querySelectorAll(".preset-btn[data-preset]")
-    .forEach((b) => b.classList.remove("active"));
-  document
-    .querySelector('.preset-btn[data-preset="balanced"]')
-    .classList.add("active");
-
-  updateFormulaControls();
-  updateDisplay();
-});
-
-document.querySelectorAll(".currency-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document
-      .querySelectorAll(".currency-btn")
-      .forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentCurrency = btn.dataset.currency;
-    updateDisplay();
+  // Currency buttons
+  document.querySelectorAll(".currency-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll(".currency-btn")
+        .forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentCurrency = btn.dataset.currency;
+      updateDisplay();
+    });
   });
-});
+}
 
-// Health check function
+// =============================================================================
+// DEBUGGING & HEALTH CHECKS
+// =============================================================================
+
+/**
+ * Health check function for debugging
+ * @returns {Object} System status checks
+ */
 function healthCheck() {
   const checks = {
     chart: !!priceChart,
@@ -509,17 +656,14 @@ function healthCheck() {
   return checks;
 }
 
-// Error handling for chart
-function safeUpdateChart() {
-  try {
-    updateChart();
-  } catch (error) {
-    console.error("Chart update error:", error);
-  }
-}
+// =============================================================================
+// APPLICATION INITIALIZATION
+// =============================================================================
 
-// Initialize
-document.addEventListener("DOMContentLoaded", () => {
+/**
+ * Initializes the entire application
+ */
+function initApp() {
   initChart();
   updateFormulaControls();
   updateDisplay();
@@ -527,27 +671,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Run health check after initialization
   setTimeout(healthCheck, 1000);
+}
 
-  // Add theme change listener for chart colors
+/**
+ * Sets up theme change listener for chart
+ */
+function initThemeListener() {
   if (window.matchMedia) {
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", () => {
-        // Reinitialize chart with new colors when theme changes
         if (priceChart) {
           priceChart.destroy();
           initChart();
         }
       });
   }
+}
 
-  // Add global error handler
+/**
+ * Sets up global error handlers
+ */
+function initErrorHandlers() {
   window.addEventListener("error", (e) => {
     console.error("Global error:", e.error);
   });
 
-  // Add unhandled promise rejection handler
   window.addEventListener("unhandledrejection", (e) => {
     console.error("Unhandled promise rejection:", e.reason);
   });
+}
+
+// Initialize on DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  initEventListeners();
+  initApp();
+  initThemeListener();
+  initErrorHandlers();
 });
